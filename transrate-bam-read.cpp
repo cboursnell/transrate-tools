@@ -73,8 +73,11 @@ class BetterBam {
         if (alignment.GetTag("NM", nm_tag)) {
           array[i].edit_distance += nm_tag;
         }
-        array[i].reads_mapped++;
-        if (alignment.IsPrimaryAlignment() && alignment.IsMateMapped()) {
+        if (alignment.IsFirstMate() ||
+          (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
+          array[i].reads_mapped++;
+        }
+        if (alignment.IsFirstMate() && alignment.IsMateMapped()) {
           array[i].both_mapped++;
           if (alignment.IsProperPair()) {
             array[i].properpair++;
@@ -91,6 +94,7 @@ class BetterBam {
                           array[alignment.MateRefID].length - alignment.MatePosition);
               if (ldist + rdist <= realistic_distance) {
                 array[i].bridges++;
+                array[i].good++;
               }
             }
           }
@@ -117,7 +121,7 @@ class BetterBam {
 
 BetterBam::BetterBam (std::string s) {
     file = s;
-    realistic_distance = 400;
+    realistic_distance = 350;
 }
 
 int main (int argc, char* argv[]) {
