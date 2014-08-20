@@ -1,8 +1,8 @@
 transrate-bam-read
 ==================
 
-Program using the bamtools c++ library to parse bam files and get read mapping
-information for [transrate](https://github.com/Blahah/transrate).
+Command-line tool using the bamtools c++ library to parse bam files and aggregate read mapping
+information by contig for [transrate](https://github.com/Blahah/transrate).
 
 Currently captured:
 
@@ -16,3 +16,18 @@ Currently captured:
  - proper pair
  - good
 
+## Building
+
+Make sure you clone with submodules:
+
+```bash
+$ git clone --recursive git@github.com:cboursnell/transrate-bam-read.git
+```
+
+Then just run the build script:
+
+```bash
+$ ./build
+```
+
+The executable will be called `transrate-bam-reads`.
