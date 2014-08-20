@@ -1,1 +1,1 @@
-g++ -g -Wall -fPIC -I include -L lib -lbamtools -Wl,-rpath=lib transrate-bam-read.cpp -o transrate-bam-read
+g++ -Wl,-Bstatic transrate-bam-read.cpp -o transrate-bam-read -L lib -lbamtools -static-libgcc -I include -lz
