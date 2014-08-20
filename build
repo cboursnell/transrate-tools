@@ -1,1 +1,6 @@
-g++ -Wl,-Bstatic transrate-bam-read.cpp -o transrate-bam-read -L lib -lbamtools -static-libgcc -I include -lz
+mkdir bamtools/build
+cd bamtools/build
+cmake ../
+make
+cd ../..
+g++ -Wl,-Bstatic transrate-bam-read.cpp -o transrate-bam-read -L bamtools/lib -lbamtools -static-libgcc -I bamtools/include -lz
