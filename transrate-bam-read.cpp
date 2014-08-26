@@ -94,7 +94,6 @@ class BetterBam {
                           array[alignment.MateRefID].length - alignment.MatePosition);
               if (ldist + rdist <= realistic_distance) {
                 array[i].bridges++;
-                array[i].good++;
               }
             }
           }
