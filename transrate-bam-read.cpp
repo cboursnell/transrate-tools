@@ -149,7 +149,7 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "Usage:\ntransrate-bam-read <bam_file> <output_csv>" << endl;
+    cout << "bam-read version 0.2\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
     return 1;
   }
 }
