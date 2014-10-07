@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "api/BamReader.h"
+#include "transrate_pileup.h"
 using namespace BamTools;
 
 using namespace std;
@@ -24,13 +25,14 @@ struct ContigRecord {
 class BetterBam {
     int realistic_distance;
     int seq_count;
-    int i;
+    int i,j;
     uint32_t nm_tag;
     int ldist;
     int rdist;
     std::string file;
     BamReader reader;
     BamAlignment alignment;
+    RefVector m_references;
   public:
     std::vector<ContigRecord> array;
     BetterBam (std::string);
@@ -66,9 +68,28 @@ class BetterBam {
         array[i].properpair = 0;
         array[i].good = 0;
       }
+      m_references = reader.GetReferenceData();
       // loop through bam file
+      i = -2;
+      TransratePileup pileup;
+      int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
-        i = alignment.RefID;
+        if (alignment.RefID != i && alignment.RefID != -1) {
+          // -1 for unaligned reads
+          i = alignment.RefID;
+
+          if (i!=-1) {
+            for(j=0;j<10;j++) {
+              cout << pileup.getCoverage()[j] << " ";
+            }
+            cout << endl;
+            // pileup.Flush();
+          }
+          ref_length = array[i].length;
+          cout << "refid: " << alignment.RefID << endl;
+        }
+        pileup.AddAlignment(alignment, ref_length);
+
         array[i].bases_mapped += alignment.Length;
         if (alignment.GetTag("NM", nm_tag)) {
           array[i].edit_distance += nm_tag;
@@ -100,6 +121,7 @@ class BetterBam {
         }
 
       }
+      // delete pileup;
 
       reader.Close();
       return 0;
