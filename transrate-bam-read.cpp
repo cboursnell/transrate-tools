@@ -20,6 +20,7 @@ struct ContigRecord {
   int both_mapped;
   int properpair;
   int good;
+  int bases_uncovered;
 };
 
 class BetterBam {
@@ -32,7 +33,6 @@ class BetterBam {
     std::string file;
     BamReader reader;
     BamAlignment alignment;
-    RefVector m_references;
   public:
     std::vector<ContigRecord> array;
     BetterBam (std::string);
@@ -53,7 +53,7 @@ class BetterBam {
       // get an iterator for looping over the sequences in the header
       std::vector<SamSequence>::iterator it = dictionary.Begin();
       // file the vector with intial values
-        for (i = 0; i < seq_count; i++) {
+      for (i = 0; i < seq_count; i++) {
         array[i].bases_mapped = 0;
         array[i].edit_distance = 0;
         array[i].bridges = 0;
@@ -67,28 +67,37 @@ class BetterBam {
         array[i].both_mapped = 0;
         array[i].properpair = 0;
         array[i].good = 0;
+        array[i].bases_uncovered = 0;
       }
-      m_references = reader.GetReferenceData();
       // loop through bam file
       i = -2;
       TransratePileup pileup;
       int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
-        if (alignment.RefID != i && alignment.RefID != -1) {
-          // -1 for unaligned reads
-          i = alignment.RefID;
 
-          if (i!=-1) {
-            for(j=0;j<10;j++) {
-              cout << pileup.getCoverage()[j] << " ";
+        if (alignment.IsMapped()) {
+          // new contig
+          if (alignment.RefID != i) {
+            // -1 for unaligned reads
+            if (i>=0) {
+              array[i].bases_uncovered = pileup.getBasesUncovered();
+              // cout << pileup.getUniqueBases() << endl;
+              // array[i].uniqueness = pileup.getUniqueBases();
+              // for (j = 0; j < ref_length; ++j) {
+              //   cout << pileup.getMapq(j) << " ";
+              // }
+              // cout << endl;
+              cout << pileup.getUniqueBases() << endl;
             }
-            cout << endl;
-            // pileup.Flush();
+            i = alignment.RefID;
+            ref_length = array[i].length;
+            pileup.clearCoverage(ref_length);
+
           }
-          ref_length = array[i].length;
-          cout << "refid: " << alignment.RefID << endl;
+          if (alignment.IsPrimaryAlignment()) {
+            pileup.addAlignment(alignment);
+          }
         }
-        pileup.AddAlignment(alignment, ref_length);
 
         array[i].bases_mapped += alignment.Length;
         if (alignment.GetTag("NM", nm_tag)) {
@@ -121,7 +130,12 @@ class BetterBam {
         }
 
       }
-      // delete pileup;
+      array[i].bases_uncovered = pileup.getBasesUncovered();
+      cout << pileup.getUniqueBases() << endl;
+      // for (j = 0; j < ref_length; ++j) {
+      //   cout << pileup.getMapq(j) << " ";
+      // }
+      // cout << endl;
 
       reader.Close();
       return 0;
@@ -140,6 +154,7 @@ class BetterBam {
     }
 };
 
+//constructor
 BetterBam::BetterBam (std::string s) {
     file = s;
     realistic_distance = 350;
@@ -156,7 +171,7 @@ int main (int argc, char* argv[]) {
     // string outfile = argv[2];
     output.open (argv[2]);
     output << "name,bases,edit_distance,bridges,length,reads_mapped,";
-    output << "both_mapped,properpair,good\n";
+    output << "both_mapped,properpair,good,bases_uncovered\n";
     for (i = 0; i < bam.get_seq_count(); i++) {
       output << bam.get_info(i).name << ",";
       output << bam.get_info(i).bases_mapped << ",";
@@ -166,12 +181,13 @@ int main (int argc, char* argv[]) {
       output << bam.get_info(i).reads_mapped << ",";
       output << bam.get_info(i).both_mapped << ",";
       output << bam.get_info(i).properpair << ",";
-      output << bam.get_info(i).good << endl;
+      output << bam.get_info(i).good << ",";
+      output << bam.get_info(i).bases_uncovered << endl;
     }
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.2\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
+    cout << "bam-read version 0.3\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
     return 1;
   }
 }
