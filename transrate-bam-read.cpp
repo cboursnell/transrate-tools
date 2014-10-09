@@ -21,6 +21,7 @@ struct ContigRecord {
   int properpair;
   int good;
   int bases_uncovered;
+  double mapq;
 };
 
 class BetterBam {
@@ -68,6 +69,7 @@ class BetterBam {
         array[i].properpair = 0;
         array[i].good = 0;
         array[i].bases_uncovered = 0;
+        array[i].mapq = 0;
       }
       // loop through bam file
       i = -2;
@@ -81,13 +83,7 @@ class BetterBam {
             // -1 for unaligned reads
             if (i>=0) {
               array[i].bases_uncovered = pileup.getBasesUncovered();
-              // cout << pileup.getUniqueBases() << endl;
-              // array[i].uniqueness = pileup.getUniqueBases();
-              // for (j = 0; j < ref_length; ++j) {
-              //   cout << pileup.getMapq(j) << " ";
-              // }
-              // cout << endl;
-              cout << pileup.getUniqueBases() << endl;
+              array[i].mapq = pileup.getUniqueBases();
             }
             i = alignment.RefID;
             ref_length = array[i].length;
@@ -131,11 +127,7 @@ class BetterBam {
 
       }
       array[i].bases_uncovered = pileup.getBasesUncovered();
-      cout << pileup.getUniqueBases() << endl;
-      // for (j = 0; j < ref_length; ++j) {
-      //   cout << pileup.getMapq(j) << " ";
-      // }
-      // cout << endl;
+      array[i].mapq = pileup.getUniqueBases();
 
       reader.Close();
       return 0;
@@ -171,7 +163,7 @@ int main (int argc, char* argv[]) {
     // string outfile = argv[2];
     output.open (argv[2]);
     output << "name,bases,edit_distance,bridges,length,reads_mapped,";
-    output << "both_mapped,properpair,good,bases_uncovered\n";
+    output << "both_mapped,properpair,good,bases_uncovered,mapq\n";
     for (i = 0; i < bam.get_seq_count(); i++) {
       output << bam.get_info(i).name << ",";
       output << bam.get_info(i).bases_mapped << ",";
@@ -182,7 +174,8 @@ int main (int argc, char* argv[]) {
       output << bam.get_info(i).both_mapped << ",";
       output << bam.get_info(i).properpair << ",";
       output << bam.get_info(i).good << ",";
-      output << bam.get_info(i).bases_uncovered << endl;
+      output << bam.get_info(i).bases_uncovered << ",";
+      output << bam.get_info(i).mapq << endl;
     }
     output.close();
     return 0;
