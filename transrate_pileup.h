@@ -3,6 +3,7 @@
 #include <vector>
 #include <math.h>
 #include "api/BamAlignment.h"
+#include "segmenter.h"
 
 using namespace BamTools;
 
@@ -26,6 +27,7 @@ class TransratePileup {
     vector<int> getBinnedCoverage();
     int getBasesUncovered();
     double getUniqueBases();
+    double p_not_segmented();
     bool addAlignment(const BamAlignment& alignment);
 
 };

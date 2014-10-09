@@ -64,6 +64,27 @@ double TransratePileup::getUniqueBases() {
   // return pow (exp(total), 1 / (double)ref_length);
 }
 
+double TransratePileup::p_not_segmented() {
+  vector<int> states(30);
+  int bin_width = (ref_length / 30)+1; // ceil
+  int counter=0;
+  int pos=0;
+  int total=0;
+  for (int i = 0; i < ref_length; ++i) {
+    total += coverage[i];
+    counter++;
+    if (counter==bin_width || i==ref_length-1) {
+      states[pos] = max(0.0,log2(total/counter));
+      pos++;
+      counter=0;
+      total=0;
+    }
+  }
+  //
+  Segmenter segmenter(states);
+  return segmenter.prob_k_given_R(0); // prob of 0 change points (1 segment)
+}
+
 bool TransratePileup::addAlignment(const BamAlignment& alignment) {
   if ( !alignment.IsMapped()) {
     return false;
@@ -91,3 +112,4 @@ bool TransratePileup::addAlignment(const BamAlignment& alignment) {
   }
   return true;
 }
+

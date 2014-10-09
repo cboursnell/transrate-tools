@@ -6,6 +6,7 @@
 #include <vector>
 #include "api/BamReader.h"
 #include "transrate_pileup.h"
+
 using namespace BamTools;
 
 using namespace std;
@@ -22,6 +23,7 @@ struct ContigRecord {
   int good;
   int bases_uncovered;
   double mapq;
+  double p_not_segmented;
 };
 
 class BetterBam {
@@ -70,6 +72,7 @@ class BetterBam {
         array[i].good = 0;
         array[i].bases_uncovered = 0;
         array[i].mapq = 0;
+        array[i].p_not_segmented = 1;
       }
       // loop through bam file
       i = -2;
@@ -84,6 +87,7 @@ class BetterBam {
             if (i>=0) {
               array[i].bases_uncovered = pileup.getBasesUncovered();
               array[i].mapq = pileup.getUniqueBases();
+              array[i].p_not_segmented = pileup.p_not_segmented();
             }
             i = alignment.RefID;
             ref_length = array[i].length;
@@ -128,6 +132,7 @@ class BetterBam {
       }
       array[i].bases_uncovered = pileup.getBasesUncovered();
       array[i].mapq = pileup.getUniqueBases();
+      array[i].p_not_segmented = pileup.p_not_segmented();
 
       reader.Close();
       return 0;
@@ -162,8 +167,9 @@ int main (int argc, char* argv[]) {
     std::ofstream output;
     // string outfile = argv[2];
     output.open (argv[2]);
-    output << "name,bases,edit_distance,bridges,length,reads_mapped,";
-    output << "both_mapped,properpair,good,bases_uncovered,mapq\n";
+    output << "name,bases,edit_distance,bridges,length,reads_mapped,"
+              "both_mapped,properpair,good,bases_uncovered,mapq"
+              ",p_not_segmented\n";
     for (i = 0; i < bam.get_seq_count(); i++) {
       output << bam.get_info(i).name << ",";
       output << bam.get_info(i).bases_mapped << ",";
@@ -175,7 +181,8 @@ int main (int argc, char* argv[]) {
       output << bam.get_info(i).properpair << ",";
       output << bam.get_info(i).good << ",";
       output << bam.get_info(i).bases_uncovered << ",";
-      output << bam.get_info(i).mapq << endl;
+      output << bam.get_info(i).mapq << ",";
+      output << bam.get_info(i).p_not_segmented << endl;
     }
     output.close();
     return 0;
