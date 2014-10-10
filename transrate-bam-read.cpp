@@ -97,33 +97,43 @@ class BetterBam {
           if (alignment.IsPrimaryAlignment()) {
             pileup.addAlignment(alignment);
           }
-        }
 
-        array[i].bases_mapped += alignment.Length;
-        if (alignment.GetTag("NM", nm_tag)) {
-          array[i].edit_distance += nm_tag;
-        }
-        if (alignment.IsFirstMate() ||
-          (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
-          array[i].reads_mapped++;
-        }
-        if (alignment.IsFirstMate() && alignment.IsMateMapped()) {
-          array[i].both_mapped++;
-          if (alignment.IsProperPair()) {
-            array[i].properpair++;
-            // check orientation
-            if ((!alignment.IsReverseStrand() && alignment.IsMateReverseStrand()) ||
-              (alignment.IsReverseStrand() && !alignment.IsMateReverseStrand())) {
-              array[i].good++;
-            }
-          } else {
-            if (i != alignment.MateRefID) {
-              ldist = min(alignment.Position,
-                          array[i].length - alignment.Position);
-              rdist = min(alignment.MatePosition,
-                          array[alignment.MateRefID].length - alignment.MatePosition);
-              if (ldist + rdist <= realistic_distance) {
-                array[i].bridges++;
+          array[i].bases_mapped += alignment.Length;
+          if (alignment.GetTag("NM", nm_tag)) {
+            array[i].edit_distance += nm_tag;
+          }
+          if (alignment.IsFirstMate() ||
+            (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
+            array[i].reads_mapped++;
+          }
+          if (alignment.IsFirstMate() && alignment.IsMateMapped()) {
+            array[i].both_mapped++;
+            if (alignment.IsProperPair() && alignment.RefID==alignment.MateRefID) {
+              array[i].properpair++;
+              // check orientation
+
+              ldist = max(alignment.Position-alignment.MatePosition,
+                          alignment.MatePosition-alignment.Position);
+              if (ldist < realistic_distance) {
+                if (!alignment.IsReverseStrand() && alignment.IsMateReverseStrand()) {
+                  if (alignment.GetEndPosition() < alignment.MatePosition) {
+                    array[i].good++;
+                  }
+                } else if (alignment.IsReverseStrand() && !alignment.IsMateReverseStrand()) {
+                  if (alignment.GetEndPosition() > alignment.MatePosition) {
+                    array[i].good++;
+                  }
+                }
+              }
+            } else {
+              if (i != alignment.MateRefID) {
+                ldist = min(alignment.Position,
+                            array[i].length - alignment.Position);
+                rdist = min(alignment.MatePosition,
+                            array[alignment.MateRefID].length - alignment.MatePosition);
+                if (ldist + rdist <= realistic_distance) {
+                  array[i].bridges++;
+                }
               }
             }
           }
