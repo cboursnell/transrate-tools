@@ -3,4 +3,4 @@ cd bamtools/build
 cmake ../
 make
 cd ../..
-g++ -Wl,-Bstatic transrate-bam-read.cpp -o transrate-bam-read -L bamtools/lib -lbamtools -lbamtools-utils -static-libgcc -I bamtools/include -lz
+g++ -Wl,-Bstatic -std=c++11 segmenter.cpp transrate_pileup.cpp transrate-bam-read.cpp -o bam-read -L bamtools/lib -lbamtools -lbamtools-utils -static-libgcc -I bamtools/include -lz

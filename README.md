@@ -15,6 +15,9 @@ Currently captured:
  - both mapped
  - proper pair
  - good
+ - uncovered bases
+ - mean mapq
+ - probability of coverage not being segmented
 
 ## Building
 
@@ -30,4 +33,4 @@ Then just run the build script:
 $ ./build
 ```
 
-The executable will be called `transrate-bam-reads`.
+The executable is called `bam-read`.
