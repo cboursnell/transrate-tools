@@ -12,6 +12,39 @@ using namespace BamTools;
 
 using namespace std;
 
+int max_indel_size = 10;
+
+// counters
+int unmapped = 0;
+int not_proper = 0;
+int mate_not_mapped = 0;
+int mate_diff_contig = 0;
+int both_same_orient = 0;
+int inversed_left = 0;
+int inversed_right = 0;
+int oversize_ins = 0;
+int oversize_del = 0;
+
+/**
+ * The Indel struct stores the information for a single insertion or deletion.
+ *  @author    Adam Roberts
+ *  @date      2012
+ *  @copyright Artistic License 2.0
+ **/
+struct Indel {
+  /**
+   * A public size_t for the position of the Indel in the read. 0-based.
+   */
+  size_t pos;
+  /**
+   * A public size_t for the length of the Indel in the read.
+   */
+  size_t len;
+  /**
+   * Indel constructor
+   */
+  Indel(size_t p, size_t l) : pos(p), len(l) {}
+};
 
 class BamSplitter {
 

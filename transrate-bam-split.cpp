@@ -12,14 +12,53 @@
 //
 // Uses code from BamTools and eXpress
 
-string RemoveFilenameExtension(const string& filename) {
+/**
+ * A helper function that strips the extension from a filename.
+ */
+string strip_extension(const string& filename) {
     size_t found = filename.rfind(".");
     return filename.substr(0, found);
 }
 
+/**
+ * A helper functon that calculates the length of the reference spanned by the
+ * read and populates the indel vectors (for BAM input).
+ * @param cigar_vec a vector containing the split cigar string.
+ * @param inserts an empty Indel vector into which to add inserts.
+ * @param deletes an empty Indel vector into which to add deletions.
+ */
+size_t cigar_length(vector<BamTools::CigarOp>& cigar_vec,
+                    vector<Indel>& inserts, vector<Indel>& deletes) {
+  inserts.clear();
+  deletes.clear();
+  size_t i = 0; // read index
+  size_t j = 0; // genomic index
+  for (size_t k = 0; k < cigar_vec.size(); ++k) {
+    char op_char = cigar_vec[k].Type;
+    size_t op_len = cigar_vec[k].Length;
+    switch(op_char) {
+      case 'I':
+      case 'S':
+        inserts.push_back(Indel(i, op_len));
+        i += op_len;
+        break;
+      case 'D':
+        deletes.push_back(Indel(i, op_len));
+        j += op_len;
+        break;
+      case 'M':
+      case 'N':
+        i += op_len;
+        j += op_len;
+        break;
+    }
+  }
+  return j;
+}
+
 bool BamSplitter::Run(void) {
 
-  m_output = RemoveFilenameExtension(m_input);
+  m_output = strip_extension(m_input);
 
   // open up BamReader
   if (!OpenReader()) {
@@ -104,23 +143,55 @@ bool BamSplitter::Split(void) {
 bool BamSplitter::IsAlignmentValid(BamAlignment& a) {
 
   if (!a.IsMapped()) {
+    ++unmapped;
     return 0;
   }
 
   bool is_paired = a.IsPaired();
 
   if (is_paired && !a.IsProperPair()) {
+    ++not_proper;
     return 0;
   }
 
   bool is_reversed = a.IsReverseStrand();
   bool is_mate_reversed = a.IsMateReverseStrand();
-  if (is_paired && (!a.IsMateMapped()
-                || a.RefID != a.MateRefID
-                || is_reversed == is_mate_reversed
-                || (is_reversed && a.MatePosition > a.Position)
-                || (is_mate_reversed && a.MatePosition < a.Position))) {
-    return 0;
+  if (is_paired) {
+    if (!a.IsMateMapped()) {
+      ++mate_not_mapped;
+      return 0;
+    } else if (a.RefID != a.MateRefID) {
+      ++mate_diff_contig;
+      return 0;
+    } else if (is_reversed == is_mate_reversed) {
+      ++both_same_orient;
+      return 0;
+    } else if (is_reversed && a.MatePosition > a.Position) {
+      ++inversed_left;
+      return 0;
+    } else if (is_mate_reversed && a.MatePosition < a.Position) {
+      ++inversed_right;
+      return 0;
+    }
+  }
+
+  std::vector<Indel> inserts;
+  std::vector<Indel> deletes;
+
+  cigar_length(a.CigarData, inserts, deletes);
+
+  for (Indel& indel : inserts) {
+    if (indel.len > max_indel_size) {
+      ++oversize_ins;
+      return 0;
+    }
+  }
+
+  for (Indel& indel : deletes) {
+    if (indel.len > max_indel_size) {
+      ++oversize_del;
+      return 0;
+    }
   }
 
   return 1;
@@ -132,8 +203,18 @@ int main (int argc, char* argv[]) {
     string infile(argv[1]);
 
     BamSplitter splitter(infile);
-    
+
     if (splitter.Run()) {
+      cout << "Unmapped:\t\t\t" << to_string(unmapped)
+           << "\nNot proper:\t\t" << to_string(not_proper)
+           << "\nMate not mapped:\t" << to_string(mate_not_mapped)
+           << "\nMate diff contig:\t" << to_string(mate_diff_contig)
+           << "\nBoth same orient:\t" << to_string(both_same_orient)
+           << "\nInversed left:\t\t" << to_string(inversed_left)
+           << "\nInversed right:\t\t" << to_string(inversed_right)
+           << "\nOversize insert\t\t" << to_string(oversize_ins)
+           << "\nOversize delete\t\t" << to_string(oversize_del)
+           << endl;
       return 0;
     } else {
       return 1;
