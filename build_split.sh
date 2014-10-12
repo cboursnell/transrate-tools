@@ -1,3 +1,2 @@
 #! /bin/sh
-
-g++ -std=c++11 -o bam-split -L bamtools/lib -lbamtools -I bamtools/include -lz transrate-bam-split.cpp
+g++ -Wl,-Bstatic -std=c++11 transrate-bam-split.cpp -o bam-split -L bamtools/lib -lbamtools -lbamtools-utils -static-libgcc -I bamtools/include -lz
