@@ -60,8 +60,8 @@ double TransratePileup::getUniqueBases() {
       total += log (sqrt (mapq[i] / (double)coverage[i]));
     }
   }
-  return exp (total / (double)ref_length);
-  // return pow (exp(total), 1 / (double)ref_length);
+  total = exp (total / (double)ref_length);
+  return 1 - pow(10, (-total/10.0));
 }
 
 double TransratePileup::p_not_segmented() {

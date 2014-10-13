@@ -13,16 +13,16 @@ using namespace std;
 
 struct ContigRecord {
   int bases_mapped;
-  int edit_distance;
+  int p_seq_true;
   int bridges;
   int length;
   string name;
-  int reads_mapped;
+  int fragments_mapped;
   int both_mapped;
   int properpair;
   int good;
   int bases_uncovered;
-  double mapq;
+  double p_unique;
   double p_not_segmented;
 };
 
@@ -55,10 +55,10 @@ class BetterBam {
       array.resize(seq_count);
       // get an iterator for looping over the sequences in the header
       std::vector<SamSequence>::iterator it = dictionary.Begin();
-      // file the vector with intial values
+      // fill the vector with intial values
       for (i = 0; i < seq_count; i++) {
         array[i].bases_mapped = 0;
-        array[i].edit_distance = 0;
+        array[i].p_seq_true = 0;
         array[i].bridges = 0;
         if (it[i].HasLength()) {
           array[i].length = atoi(it[i].Length.c_str());
@@ -66,12 +66,12 @@ class BetterBam {
           array[i].length = 0;
         }
         array[i].name = it[i].Name;
-        array[i].reads_mapped = 0;
+        array[i].fragments_mapped = 0;
         array[i].both_mapped = 0;
         array[i].properpair = 0;
         array[i].good = 0;
         array[i].bases_uncovered = 0;
-        array[i].mapq = 0;
+        array[i].p_unique = 0;
         array[i].p_not_segmented = 1;
       }
       // loop through bam file
@@ -86,7 +86,7 @@ class BetterBam {
             // -1 for unaligned reads
             if (i>=0) {
               array[i].bases_uncovered = pileup.getBasesUncovered();
-              array[i].mapq = pileup.getUniqueBases();
+              array[i].p_unique = pileup.getUniqueBases();
               array[i].p_not_segmented = pileup.p_not_segmented();
             }
             i = alignment.RefID;
@@ -100,11 +100,11 @@ class BetterBam {
 
           array[i].bases_mapped += alignment.Length;
           if (alignment.GetTag("NM", nm_tag)) {
-            array[i].edit_distance += nm_tag;
+            array[i].p_seq_true += nm_tag;
           }
           if (alignment.IsFirstMate() ||
             (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
-            array[i].reads_mapped++;
+            array[i].fragments_mapped++;
           }
           if (alignment.IsFirstMate() && alignment.IsMateMapped()) {
             array[i].both_mapped++;
@@ -141,7 +141,7 @@ class BetterBam {
 
       }
       array[i].bases_uncovered = pileup.getBasesUncovered();
-      array[i].mapq = pileup.getUniqueBases();
+      array[i].p_unique = pileup.getUniqueBases();
       array[i].p_not_segmented = pileup.p_not_segmented();
 
       reader.Close();
@@ -175,29 +175,31 @@ int main (int argc, char* argv[]) {
     int i;
 
     std::ofstream output;
-    // string outfile = argv[2];
     output.open (argv[2]);
-    output << "name,bases,edit_distance,bridges,length,reads_mapped,"
-              "both_mapped,properpair,good,bases_uncovered,mapq"
-              ",p_not_segmented\n";
+    output << "name,p_seq_true,bridges,length,fragments_mapped,"
+              "both_mapped,properpair,good,bases_uncovered,p_unique,"
+              "p_not_segmented\n";
     for (i = 0; i < bam.get_seq_count(); i++) {
       output << bam.get_info(i).name << ",";
-      output << bam.get_info(i).bases_mapped << ",";
-      output << bam.get_info(i).edit_distance << ",";
+      if (bam.get_info(i).bases_mapped>0) {
+        output << 1-((double)bam.get_info(i).p_seq_true/bam.get_info(i).bases_mapped) << ",";
+      } else {
+        output << "1,";
+      }
       output << bam.get_info(i).bridges << ",";
       output << bam.get_info(i).length << ",";
-      output << bam.get_info(i).reads_mapped << ",";
+      output << bam.get_info(i).fragments_mapped << ",";
       output << bam.get_info(i).both_mapped << ",";
       output << bam.get_info(i).properpair << ",";
       output << bam.get_info(i).good << ",";
       output << bam.get_info(i).bases_uncovered << ",";
-      output << bam.get_info(i).mapq << ",";
+      output << bam.get_info(i).p_unique << ",";
       output << bam.get_info(i).p_not_segmented << endl;
     }
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
+    cout << "bam-read version 0.3.1\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
     return 1;
   }
 }
