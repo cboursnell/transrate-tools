@@ -18,7 +18,7 @@ class TransratePileup {
     vector<long> mapq;
 
   public:
-    TransratePileup();
+    TransratePileup(int maxL);
 
     void clearCoverage(int rl);
     int getCoverage(int i);

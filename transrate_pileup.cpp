@@ -4,26 +4,20 @@ using namespace BamTools;
 
 using namespace std;
 
-TransratePileup::TransratePileup() {
+TransratePileup::TransratePileup(int maxL) {
   ref_length = 0;
-  // ref_length = rl;
-  // coverage.reserve(ref_length);
+  coverage.resize(maxL);
+  mapq.resize(maxL);
 }
 
 void TransratePileup::clearCoverage(int rl) {
   ref_length = rl;
-  coverage.clear();
-  coverage.reserve(ref_length);
   for (int i = 0; i < ref_length; ++i) {
     coverage[i] = 0;
   }
-
-  mapq.clear();
-  mapq.reserve(ref_length);
   for (int i = 0; i < ref_length; ++i) {
-    mapq[i] =0;
+    mapq[i] = 0;
   }
-
 }
 
 int TransratePileup::getCoverage(int i) {
@@ -56,7 +50,6 @@ double TransratePileup::getUniqueBases() {
   double total = 0;
   for (int i = 0; i < ref_length; i++) {
     if (coverage[i] > 0) {
-      // cout << sqrt (mapq[i] / (double)coverage[i]) << " " << endl;
       total += log (sqrt (mapq[i] / (double)coverage[i]));
     }
   }
@@ -103,11 +96,9 @@ bool TransratePileup::addAlignment(const BamAlignment& alignment) {
     if (op.Type == 'I') {
       // I means insertion - gaps in reference
     }
-    if (op.Type == 'D') {
+    if (op.Type == 'D' || op.Type == 'S') {
       // D means deletion - gaps in read
-      for(p = 0; p < (int)op.Length; ++p) {
-        pos++;
-      }
+      pos += (int)op.Length;
     }
   }
   return true;
