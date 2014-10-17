@@ -201,7 +201,7 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3.1\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
+    cout << "bam-read version 0.3.2\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
     return 1;
   }
 }
