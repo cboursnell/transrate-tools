@@ -33,6 +33,7 @@ class BetterBam {
     uint32_t nm_tag;
     int ldist;
     int rdist;
+    int maxL=0;
     std::string file;
     BamReader reader;
     BamAlignment alignment;
@@ -62,6 +63,9 @@ class BetterBam {
         array[i].bridges = 0;
         if (it[i].HasLength()) {
           array[i].length = atoi(it[i].Length.c_str());
+          if (array[i].length > maxL) {
+            maxL = array[i].length;
+          }
         } else {
           array[i].length = 0;
         }
@@ -76,14 +80,12 @@ class BetterBam {
       }
       // loop through bam file
       i = -2;
-      TransratePileup pileup;
+      TransratePileup pileup(maxL);
       int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
-
         if (alignment.IsMapped()) {
           // new contig
           if (alignment.RefID != i) {
-            // -1 for unaligned reads
             if (i>=0) {
               array[i].bases_uncovered = pileup.getBasesUncovered();
               array[i].p_unique = pileup.getUniqueBases();
@@ -199,7 +201,7 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3.1\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
+    cout << "bam-read version 0.3.2\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
     return 1;
   }
 }
