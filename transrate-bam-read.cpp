@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "api/BamReader.h"
-#include "transrate_pileup.h"
+#include "transrate-pileup.h"
 
 using namespace BamTools;
 
@@ -40,6 +40,18 @@ class BetterBam {
   public:
     std::vector<ContigRecord> array;
     BetterBam (std::string);
+
+    bool check_cigar(BamAlignment alignment) {
+      int numCigarOps = alignment.CigarData.size();
+      bool check = false;
+      for (int i = 0; i < numCigarOps; ++i) {
+        const CigarOp& op = alignment.CigarData.at(i);
+        if (op.Type != 'S') {
+          check = true;
+        }
+      }
+      return check;
+    }
 
     void set_fragment_size(int size, int sd) {
       realistic_distance = size + 3 * sd;
@@ -83,7 +95,8 @@ class BetterBam {
       TransratePileup pileup(maxL);
       int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
-        if (alignment.IsMapped()) {
+        if (alignment.IsMapped() && check_cigar(alignment)) {
+
           // new contig
           if (alignment.RefID != i) {
             if (i>=0) {
@@ -101,8 +114,10 @@ class BetterBam {
           }
 
           array[i].bases_mapped += alignment.Length;
-          if (alignment.GetTag("NM", nm_tag)) {
-            array[i].p_seq_true += nm_tag;
+          if (alignment.HasTag("NM")) {
+            if (alignment.GetTag("NM", nm_tag)) {
+              array[i].p_seq_true += nm_tag;
+            }
           }
           if (alignment.IsFirstMate() ||
             (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
@@ -180,7 +195,7 @@ int main (int argc, char* argv[]) {
     output.open (argv[2]);
     output << "name,p_seq_true,bridges,length,fragments_mapped,"
               "both_mapped,properpair,good,bases_uncovered,p_unique,"
-              "p_not_segmented\n";
+              "p_not_segmented" << endl;
     for (i = 0; i < bam.get_seq_count(); i++) {
       output << bam.get_info(i).name << ",";
       if (bam.get_info(i).bases_mapped>0) {
@@ -201,7 +216,7 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3.2\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
+    cout << "bam-read version 0.3.3\nUsage:\nbam-read <bam_file> <output_csv>" << endl;
     return 1;
   }
 }
