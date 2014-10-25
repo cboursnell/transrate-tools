@@ -23,8 +23,12 @@ Segmenter::Segmenter (vector<int> &seq_, double nullprior_) {
 void Segmenter::load_states() {
 
   states_.resize(24, 0);
-  for (auto p = seq.begin(); p != seq.end(); ++p) {
-    ++ (states_[(int)*p]);
+  for (int i = 0 ; i < seq.size() ; ++i) {
+    if (seq[i]<24) {
+      ++states_[seq[i]];
+    } else {
+      ++states_[23];
+    }
   }
   pRk_.resize(2, -1.0);
 

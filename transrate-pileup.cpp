@@ -1,4 +1,4 @@
-#include "transrate_pileup.h"
+#include "transrate-pileup.h"
 
 using namespace BamTools;
 
@@ -67,7 +67,7 @@ double TransratePileup::p_not_segmented() {
     total += coverage[i];
     counter++;
     if (counter==bin_width || i==ref_length-1) {
-      states[pos] = max(0.0,log2(total/counter));
+      states[pos] = (int)min(24.0, max(0.0,log2(total/counter)));
       pos++;
       counter=0;
       total=0;
@@ -89,8 +89,10 @@ bool TransratePileup::addAlignment(const BamAlignment& alignment) {
     if (op.Type == 'M') {
       for(p = 0; p < (int)op.Length; ++p) {
         pos++;
-        coverage[pos-1]++;
-        mapq[pos-1] += pow(alignment.MapQuality,2);
+        if (pos < ref_length) {
+          ++coverage[pos-1];
+          mapq[pos-1] += pow(alignment.MapQuality,2);
+        }
       }
     }
     if (op.Type == 'I') {
@@ -99,6 +101,7 @@ bool TransratePileup::addAlignment(const BamAlignment& alignment) {
     if (op.Type == 'D' || op.Type == 'S') {
       // D means deletion - gaps in read
       pos += (int)op.Length;
+
     }
   }
   return true;
