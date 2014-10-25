@@ -41,6 +41,7 @@ class BetterBam {
     std::vector<ContigRecord> array;
     BetterBam (std::string);
 
+    // loop through all cigar operations and check they are not S
     bool check_cigar(BamAlignment alignment) {
       int numCigarOps = alignment.CigarData.size();
       bool check = false;
@@ -53,6 +54,7 @@ class BetterBam {
       return check;
     }
 
+    // set realistic distance between pairs to have 0.03% false positive rate
     void set_fragment_size(int size, int sd) {
       realistic_distance = size + 3 * sd;
     }
@@ -95,67 +97,92 @@ class BetterBam {
       TransratePileup pileup(maxL);
       int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
-        if (alignment.IsMapped() && check_cigar(alignment)) {
 
-          // new contig
-          if (alignment.RefID != i) {
-            if (i>=0) {
-              array[i].bases_uncovered = pileup.getBasesUncovered();
-              array[i].p_unique = pileup.getUniqueBases();
-              array[i].p_not_segmented = pileup.p_not_segmented();
-            }
-            i = alignment.RefID;
-            ref_length = array[i].length;
-            pileup.clearCoverage(ref_length);
+        // read must be mapped
+        if (!alignment.IsMapped()) {
+          continue;
+        }
 
-          }
-          if (alignment.IsPrimaryAlignment()) {
-            pileup.addAlignment(alignment);
-          }
+        // alignment must have a valid cigar sting
+        if (!check_cigar(alignment)) {
+          continue;
+        }
 
-          array[i].bases_mapped += alignment.Length;
-          if (alignment.HasTag("NM")) {
-            if (alignment.GetTag("NM", nm_tag)) {
-              array[i].p_seq_true += nm_tag;
-            }
+        // check this read comes from the currently loaded contig
+        // if not, load the new contig
+        if (alignment.RefID != i) {
+          if (i>=0) {
+            array[i].bases_uncovered = pileup.getBasesUncovered();
+            array[i].p_unique = pileup.getUniqueBases();
+            array[i].p_not_segmented = pileup.p_not_segmented();
           }
-          if (alignment.IsFirstMate() ||
-            (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
-            array[i].fragments_mapped++;
-          }
-          if (alignment.IsFirstMate() && alignment.IsMateMapped()) {
-            array[i].both_mapped++;
-            if (alignment.IsProperPair() && alignment.RefID==alignment.MateRefID) {
-              array[i].properpair++;
-              // check orientation
+          i = alignment.RefID;
+          ref_length = array[i].length;
+          pileup.clearCoverage(ref_length);
+        }
 
-              ldist = max(alignment.Position-alignment.MatePosition,
-                          alignment.MatePosition-alignment.Position);
-              if (ldist < realistic_distance) {
-                if (!alignment.IsReverseStrand() && alignment.IsMateReverseStrand()) {
-                  if (alignment.GetEndPosition() < alignment.MatePosition) {
-                    array[i].good++;
-                  }
-                } else if (alignment.IsReverseStrand() && !alignment.IsMateReverseStrand()) {
-                  if (alignment.GetEndPosition() > alignment.MatePosition) {
-                    array[i].good++;
-                  }
-                }
-              }
-            } else {
-              if (i != alignment.MateRefID) {
-                ldist = min(alignment.Position,
-                            array[i].length - alignment.Position);
-                rdist = min(alignment.MatePosition,
-                            array[alignment.MateRefID].length - alignment.MatePosition);
-                if (ldist + rdist <= realistic_distance) {
-                  array[i].bridges++;
-                }
-              }
-            }
+        // we only care about the primary alignment of each fragment
+        if (!alignment.IsPrimaryAlignment()) {
+          continue;
+        }
+
+        pileup.addAlignment(alignment);
+
+        array[i].bases_mapped += alignment.Length;
+
+        // store edit distance for sequence accuracy calculation
+        if (alignment.HasTag("NM")) {
+          if (alignment.GetTag("NM", nm_tag)) {
+            array[i].p_seq_true += nm_tag;
           }
         }
 
+        // count fragments where either or both mates mapped
+        if (alignment.IsFirstMate() ||
+          (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
+          array[i].fragments_mapped++;
+        }
+
+        // from now on ignore fragments unless both mates mapped
+        if (!(alignment.IsFirstMate() && alignment.IsMateMapped())) {
+          continue;
+        }
+
+        array[i].both_mapped++;
+
+        // mates must align to same contig, otherwise we record a bridge
+        if (alignment.RefIDv != alignment.MateRefID) {
+          array[i].bridges++;
+          continue;
+        }
+
+        // fragment length must be plausible
+        ldist = max(alignment.Position-alignment.MatePosition,
+                    alignment.MatePosition-alignment.Position);
+        if (ldist > realistic_distance) {
+          // mates are too far apart
+          continue;
+        }
+
+        // read orientation must match the generated library
+        // in this case we only test for FR/RF orientation,
+        // that is - we expect mates to be on opposite strands
+        bool is_reversed = a.IsReverseStrand();
+        bool is_mate_reversed = a.IsMateReverseStrand();
+
+        if (!is_reversed && is_mate_reversed)
+          // in FR orientation, first read must start
+          // before second read
+          if (alignment.Position < alignment.MatePosition) {
+            array[i].good++;
+          }
+        } else if (is_reversed && !is_mate_reversed) {
+          // in RF orientation, second read must start
+          // before first read
+          if (alignment.MatePosition < alignment.Position) {
+            array[i].good++;
+          }
+        }
       }
       array[i].bases_uncovered = pileup.getBasesUncovered();
       array[i].p_unique = pileup.getUniqueBases();
