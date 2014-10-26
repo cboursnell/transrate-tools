@@ -151,7 +151,7 @@ class BetterBam {
         array[i].both_mapped++;
 
         // mates must align to same contig, otherwise we record a bridge
-        if (alignment.RefIDv != alignment.MateRefID) {
+        if (alignment.RefID != alignment.MateRefID) {
           array[i].bridges++;
           continue;
         }
@@ -167,10 +167,10 @@ class BetterBam {
         // read orientation must match the generated library
         // in this case we only test for FR/RF orientation,
         // that is - we expect mates to be on opposite strands
-        bool is_reversed = a.IsReverseStrand();
-        bool is_mate_reversed = a.IsMateReverseStrand();
+        bool is_reversed = alignment.IsReverseStrand();
+        bool is_mate_reversed = alignment.IsMateReverseStrand();
 
-        if (!is_reversed && is_mate_reversed)
+        if (!is_reversed && is_mate_reversed) {
           // in FR orientation, first read must start
           // before second read
           if (alignment.Position < alignment.MatePosition) {
