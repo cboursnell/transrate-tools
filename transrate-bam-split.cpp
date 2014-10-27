@@ -175,6 +175,19 @@ bool BamSplitter::IsAlignmentValid(BamAlignment& a) {
     }
   }
 
+  // loop through all cigar operations and check they are not S
+  int numCigarOps = a.CigarData.size();
+  bool check = false;
+  for (int i = 0; i < numCigarOps; ++i) {
+    const CigarOp& op = a.CigarData.at(i);
+    if (op.Type != 'S') {
+      check = true;
+    }
+  }
+  if (!check) {
+    return 0;
+  }
+
   std::vector<Indel> inserts;
   std::vector<Indel> deletes;
 
