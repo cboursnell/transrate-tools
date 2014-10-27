@@ -208,7 +208,7 @@ class BetterBam {
 //constructor
 BetterBam::BetterBam (std::string s) {
     file = s;
-    realistic_distance = 350;
+    realistic_distance = 450;
 }
 
 int main (int argc, char* argv[]) {
