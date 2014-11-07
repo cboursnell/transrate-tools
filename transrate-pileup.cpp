@@ -38,7 +38,7 @@ vector<int> TransratePileup::getBinnedCoverage() {
 
 int TransratePileup::getBasesUncovered() {
   int bases_uncovered=0;
-  for (int i = 0; i < ref_length; i++) {
+  for (int i = 0; i < ref_length; ++i) {
     if (coverage[i]==0) {
       bases_uncovered++;
     }
@@ -79,20 +79,16 @@ double TransratePileup::p_not_segmented() {
 }
 
 bool TransratePileup::addAlignment(const BamAlignment& alignment) {
-  if ( !alignment.IsMapped()) {
-    return false;
-  }
   int numCigarOps = alignment.CigarData.size();
   int pos = alignment.Position;
   for (int i = 0; i < numCigarOps; ++i) {
     const CigarOp& op = alignment.CigarData.at(i);
     if (op.Type == 'M') {
+      // increase coverage by 1 for each position that is a match
       for(p = 0; p < (int)op.Length; ++p) {
-        pos++;
-        if (pos < ref_length) {
-          ++coverage[pos-1];
-          mapq[pos-1] += pow(alignment.MapQuality,2);
-        }
+        ++coverage[pos];
+        mapq[pos] += pow(alignment.MapQuality,2);
+        ++pos;
       }
     }
     if (op.Type == 'I') {
@@ -101,9 +97,7 @@ bool TransratePileup::addAlignment(const BamAlignment& alignment) {
     if (op.Type == 'D' || op.Type == 'S') {
       // D means deletion - gaps in read
       pos += (int)op.Length;
-
     }
   }
   return true;
 }
-
