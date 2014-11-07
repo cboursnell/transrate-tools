@@ -41,19 +41,6 @@ class BetterBam {
     std::vector<ContigRecord> array;
     BetterBam (std::string);
 
-    // loop through all cigar operations and check they are not S
-    bool check_cigar(BamAlignment alignment) {
-      int numCigarOps = alignment.CigarData.size();
-      bool check = false;
-      for (int i = 0; i < numCigarOps; ++i) {
-        const CigarOp& op = alignment.CigarData.at(i);
-        if (op.Type != 'S') {
-          check = true;
-        }
-      }
-      return check;
-    }
-
     // set realistic distance between pairs to have 0.03% false positive rate
     void set_fragment_size(int size, int sd) {
       realistic_distance = size + 3 * sd;
@@ -97,17 +84,6 @@ class BetterBam {
       TransratePileup pileup(maxL);
       int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
-
-        // read must be mapped
-        if (!alignment.IsMapped()) {
-          continue;
-        }
-
-        // alignment must have a valid cigar sting
-        if (!check_cigar(alignment)) {
-          continue;
-        }
-
         // check this read comes from the currently loaded contig
         // if not, load the new contig
         if (alignment.RefID != i) {
@@ -121,8 +97,8 @@ class BetterBam {
           pileup.clearCoverage(ref_length);
         }
 
-        // we only care about the primary alignment of each fragment
-        if (!alignment.IsPrimaryAlignment()) {
+        // read must be mapped
+        if (!alignment.IsMapped()) {
           continue;
         }
 
