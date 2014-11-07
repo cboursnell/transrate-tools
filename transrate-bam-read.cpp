@@ -84,6 +84,11 @@ class BetterBam {
       TransratePileup pileup(maxL);
       int ref_length = -1;
       while (reader.GetNextAlignment(alignment)) {
+
+        // read must be mapped
+        if (!alignment.IsMapped()) {
+          continue;
+        }
         // check this read comes from the currently loaded contig
         // if not, load the new contig
         if (alignment.RefID != i) {
@@ -95,11 +100,6 @@ class BetterBam {
           i = alignment.RefID;
           ref_length = array[i].length;
           pileup.clearCoverage(ref_length);
-        }
-
-        // read must be mapped
-        if (!alignment.IsMapped()) {
-          continue;
         }
 
         pileup.addAlignment(alignment);
