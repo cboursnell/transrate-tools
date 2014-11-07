@@ -164,7 +164,9 @@ class BetterBam {
       array[i].p_unique = pileup.getUniqueBases();
       array[i].p_not_segmented = pileup.p_not_segmented();
 
-      reader.Close();
+      if (reader.IsOpen()) {
+        reader.Close();
+      }
       return 0;
     }
 
@@ -183,8 +185,8 @@ class BetterBam {
 
 //constructor
 BetterBam::BetterBam (std::string s) {
-    file = s;
-    realistic_distance = 450;
+  file = s;
+  realistic_distance = 450;
 }
 
 int main (int argc, char* argv[]) {
