@@ -5,6 +5,8 @@
 #include "api/BamAlignment.h"
 #include "segmenter.h"
 
+extern double nullprior;
+
 using namespace BamTools;
 
 using namespace std;

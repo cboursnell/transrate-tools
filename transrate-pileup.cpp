@@ -74,7 +74,7 @@ double TransratePileup::p_not_segmented() {
     }
   }
   //
-  Segmenter segmenter(states);
+  Segmenter segmenter(states, nullprior);
   return segmenter.prob_k_given_R(0); // prob of 0 change points (1 segment)
 }
 
