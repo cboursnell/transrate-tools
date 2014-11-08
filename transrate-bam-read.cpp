@@ -41,19 +41,6 @@ class BetterBam {
     std::vector<ContigRecord> array;
     BetterBam (std::string);
 
-    // loop through all cigar operations and check they are not S
-    bool check_cigar(BamAlignment alignment) {
-      int numCigarOps = alignment.CigarData.size();
-      bool check = false;
-      for (int i = 0; i < numCigarOps; ++i) {
-        const CigarOp& op = alignment.CigarData.at(i);
-        if (op.Type != 'S') {
-          check = true;
-        }
-      }
-      return check;
-    }
-
     // set realistic distance between pairs to have 0.03% false positive rate
     void set_fragment_size(int size, int sd) {
       realistic_distance = size + 3 * sd;
@@ -102,12 +89,6 @@ class BetterBam {
         if (!alignment.IsMapped()) {
           continue;
         }
-
-        // alignment must have a valid cigar sting
-        if (!check_cigar(alignment)) {
-          continue;
-        }
-
         // check this read comes from the currently loaded contig
         // if not, load the new contig
         if (alignment.RefID != i) {
@@ -119,11 +100,6 @@ class BetterBam {
           i = alignment.RefID;
           ref_length = array[i].length;
           pileup.clearCoverage(ref_length);
-        }
-
-        // we only care about the primary alignment of each fragment
-        if (!alignment.IsPrimaryAlignment()) {
-          continue;
         }
 
         pileup.addAlignment(alignment);
@@ -188,7 +164,9 @@ class BetterBam {
       array[i].p_unique = pileup.getUniqueBases();
       array[i].p_not_segmented = pileup.p_not_segmented();
 
-      reader.Close();
+      if (reader.IsOpen()) {
+        reader.Close();
+      }
       return 0;
     }
 
@@ -207,8 +185,8 @@ class BetterBam {
 
 //constructor
 BetterBam::BetterBam (std::string s) {
-    file = s;
-    realistic_distance = 450;
+  file = s;
+  realistic_distance = 450;
 }
 
 int main (int argc, char* argv[]) {
@@ -243,7 +221,7 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3.4\n"
+    cout << "bam-read version 0.3.5\n"
          << "Usage:\n"
          << "bam-read <bam_file> <output_csv>" << endl;
     return 1;
