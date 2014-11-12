@@ -91,6 +91,7 @@ class BetterBam {
         if (!alignment.IsMapped()) {
           continue;
         }
+
         // check this read comes from the currently loaded contig
         // if not, load the new contig
         if (alignment.RefID != i) {
@@ -127,6 +128,12 @@ class BetterBam {
         }
 
         array[i].both_mapped++;
+
+        // count proper pairs, although we have our own definition because
+        // not all aligners use the same definition
+        if (alignment.IsProperPair()) {
+          ++array[i].properpair;
+        }
 
         // mates must align to same contig, otherwise we record a bridge
         if (alignment.RefID != alignment.MateRefID) {
