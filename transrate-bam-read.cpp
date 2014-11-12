@@ -236,7 +236,7 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3.5\n"
+    cout << "bam-read version 0.3.6\n"
          << "Usage:\n"
          << "bam-read <bam_file> <output_csv> <nullprior (optional)>\n\n"
          << "example:\n"
