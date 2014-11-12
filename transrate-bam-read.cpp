@@ -11,6 +11,8 @@ using namespace BamTools;
 
 using namespace std;
 
+double nullprior = 0.5;
+
 struct ContigRecord {
   int bases_mapped;
   int p_seq_true;
@@ -89,6 +91,7 @@ class BetterBam {
         if (!alignment.IsMapped()) {
           continue;
         }
+
         // check this read comes from the currently loaded contig
         // if not, load the new contig
         if (alignment.RefID != i) {
@@ -125,6 +128,12 @@ class BetterBam {
         }
 
         array[i].both_mapped++;
+
+        // count proper pairs, although we have our own definition because
+        // not all aligners use the same definition
+        if (alignment.IsProperPair()) {
+          ++array[i].properpair;
+        }
 
         // mates must align to same contig, otherwise we record a bridge
         if (alignment.RefID != alignment.MateRefID) {
@@ -190,7 +199,11 @@ BetterBam::BetterBam (std::string s) {
 }
 
 int main (int argc, char* argv[]) {
-  if (argc == 3) {
+  if (argc >= 3) {
+    if (argc == 4) {
+      // user has supplied a segmentation null prior
+      nullprior = atof(argv[3]);
+    }
     string infile = argv[1];
     BetterBam bam (infile);
     bam.load_bam();
@@ -203,8 +216,10 @@ int main (int argc, char* argv[]) {
               "p_not_segmented" << endl;
     for (i = 0; i < bam.get_seq_count(); i++) {
       output << bam.get_info(i).name << ",";
-      if (bam.get_info(i).bases_mapped>0) {
-        output << 1-((double)bam.get_info(i).p_seq_true/bam.get_info(i).bases_mapped) << ",";
+      if (bam.get_info(i).bases_mapped > 0) {
+        output <<
+        1-((double)bam.get_info(i).p_seq_true/bam.get_info(i).bases_mapped) <<
+        ",";
       } else {
         output << "1,";
       }
@@ -221,9 +236,12 @@ int main (int argc, char* argv[]) {
     output.close();
     return 0;
   } else {
-    cout << "bam-read version 0.3.5\n"
+    cout << "bam-read version 0.3.6\n"
          << "Usage:\n"
-         << "bam-read <bam_file> <output_csv>" << endl;
+         << "bam-read <bam_file> <output_csv> <nullprior (optional)>\n\n"
+         << "example:\n"
+         << "bam-read in.bam out.csv 0.95"
+         << endl;
     return 1;
   }
 }
