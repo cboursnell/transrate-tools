@@ -7,7 +7,7 @@ using namespace std;
 Segmenter::Segmenter (vector<int> &seq_) {
 
   seq = seq_;
-  nullprior = 0.5;
+  nullprior = 0.7;
   load_states();
 
 }

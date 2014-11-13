@@ -11,7 +11,7 @@ using namespace BamTools;
 
 using namespace std;
 
-double nullprior = 0.5;
+double nullprior = 0.7;
 
 struct ContigRecord {
   int bases_mapped;
