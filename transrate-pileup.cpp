@@ -86,8 +86,10 @@ bool TransratePileup::addAlignment(const BamAlignment& alignment) {
     if (op.Type == 'M') {
       // increase coverage by 1 for each position that is a match
       for(p = 0; p < (int)op.Length; ++p) {
-        ++coverage[pos];
-        mapq[pos] += pow(alignment.MapQuality,2);
+        if (pos < ref_length) {
+          ++coverage[pos];
+          mapq[pos] += pow(alignment.MapQuality,2);
+        }
         ++pos;
       }
     }
