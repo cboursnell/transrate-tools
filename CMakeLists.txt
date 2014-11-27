@@ -38,23 +38,6 @@ else()
     set (SHARED_LIB_EXTENSION "so")
 endif()
 
-##
-# Compiler-specific C++11 activation.
-# http://stackoverflow.com/questions/10984442/how-to-detect-c11-support-of-a-compiler-with-cmake
-##
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    execute_process(
-        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-    if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
-        message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
-    endif ()
-
-elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    message(FATAL_ERROR "Currently, the only supported compiler is GCC(>=4.7).  We hope to support Clang soon.")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-else ()
-    message(FATAL_ERROR "Your C++ compiler does not support C++11.")
-endif ()
 
 ##
 # Record this top-level path
