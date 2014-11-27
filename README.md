@@ -1,8 +1,41 @@
-transrate-bam-read
-==================
+transrate-tools
+===============
 
-Command-line tool using the bamtools c++ library to parse bam files and aggregate read mapping
-information by contig for [transrate](https://github.com/Blahah/transrate).
+Command-line tools used by [transrate](http://github.com/blahah/transrate) for processing bam files. Written in C++ and using Bamtools.
+
+### building
+
+Make sure you clone with submodules:
+
+```bash
+$ git clone --recursive git@github.com:cboursnell/transrate-bam-read.git
+```
+
+And you'll need cmake installed.
+
+Then just...
+
+```bash
+$ cmake .
+$ make
+```
+
+On OSX, you will need to have gcc-4.7 or later installed (you can do this with `brew install gcc49`), and will need to pass the location of gcc to cmake:
+
+```bash
+$ cmake -DCMAKE_CXX_COMPILER=$(which g++-4.9) .
+$ make
+```
+
+The executables are called `bam-read` and `bam-split`.
+
+### bam-split
+
+Parse bam files to separate records that will be filtered by eXpress so that they can be merged back in to the sampled assignments for multi-mapping reads.
+
+### bam-read
+
+Parse bam files after multi-mapping reads have been assigned and aggregate read mapping information by contig.
 
 Currently captured:
 
@@ -18,19 +51,3 @@ Currently captured:
  - uncovered bases
  - mean mapq
  - probability of coverage not being segmented
-
-## Building
-
-Make sure you clone with submodules:
-
-```bash
-$ git clone --recursive git@github.com:cboursnell/transrate-bam-read.git
-```
-
-Then just run the build script:
-
-```bash
-$ ./build
-```
-
-The executable is called `bam-read`.

@@ -1,4 +1,4 @@
-#include "transrate-bam-split.h"
+#include "bam-split.h"
 
 // Transrate BAM splitter
 //

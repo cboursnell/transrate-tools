@@ -1,11 +1,10 @@
-
 #include <stdio.h>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include "api/BamReader.h"
-#include "transrate-pileup.h"
+#include "pileup.h"
 
 using namespace BamTools;
 
