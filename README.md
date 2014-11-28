@@ -8,7 +8,7 @@ Command-line tools used by [transrate](http://github.com/blahah/transrate) for p
 Make sure you clone with submodules:
 
 ```bash
-$ git clone --recursive git@github.com:cboursnell/transrate-bam-read.git
+$ git clone --recursive git@github.com:cboursnell/transrate-tools.git
 ```
 
 And you'll need cmake installed.
