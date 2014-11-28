@@ -234,7 +234,7 @@ int main (int argc, char* argv[]) {
     }
 
   } else {
-    cout << "bam-split version 1.0.0.beta\n"
+    cout << "bam-split version 1.0.0.beta1\n"
             "Usage:\n"
             "bam-split <bam_file>" << endl;
     return 1;
