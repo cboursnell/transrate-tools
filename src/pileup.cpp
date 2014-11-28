@@ -1,4 +1,4 @@
-#include "transrate-pileup.h"
+#include "pileup.h"
 
 using namespace BamTools;
 
