@@ -5,6 +5,8 @@ Command-line tools used by [transrate](http://github.com/blahah/transrate) for p
 
 ### building
 
+transrate-tools uses C++11 features, so you'll need at least g++ 4.7 installed. On OSX you can install the latest gcc with `brew install gcc49`. Note that on OSX you always need to tell `cmake` where to find gcc, using the option `-DCMAKE_CXX_COMPILER=$(which g++-4.9)`.
+
 Make sure you clone with submodules:
 
 ```bash
@@ -13,21 +15,44 @@ $ git clone --recursive git@github.com:cboursnell/transrate-tools.git
 
 And you'll need cmake installed.
 
-Then just...
+Next, build bamtools:
 
+on linux:
+
+```bash
+$ cd bamtools
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+$ cd ../../
+```
+
+or on OSX:
+```bash
+$ cd bamtools
+$ mkdir build
+$ cd build
+$ cmake -DCMAKE_CXX_COMPILER=$(which g++-4.9) ..
+$ make
+$ cd ../../
+```
+
+Then build transrate-tools...
+
+on linux:
 ```bash
 $ cmake .
 $ make
 ```
 
-On OSX, you will need to have gcc-4.7 or later installed (you can do this with `brew install gcc49`), and will need to pass the location of gcc to cmake:
-
+on OSX:
 ```bash
 $ cmake -DCMAKE_CXX_COMPILER=$(which g++-4.9) .
 $ make
 ```
 
-The executables are called `bam-read` and `bam-split`.
+The executables are called `bam-read` and `bam-split` and will be in the `src` directory.
 
 ### bam-split
 
