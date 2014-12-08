@@ -19,25 +19,11 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
+
 ## Set the standard required compile flags
 set (CMAKE_CXX_FLAGS "-fPIC -O3 -DHAVE_ANSI_TERM -DHAVE_SSTREAM -DHAVE_CONFIG_H -Wall -std=c++11")
-
-##
-# OSX is strange (some might say, stupid in this regard).  Deal with it's quirkines here.
-##
-if (APPLE)
-    # To allow ourselves to build a dynamic library, we have to tell the compiler
-    # that, yes, the symbols will be around at runtime.
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -undefined dynamic_lookup")
-    # In order to "think different", we also have to use non-standard suffixes
-    # for our shared libraries
-    set(SHARED_LIB_EXTENSION "dylib")
-    #set(HAVE_LOGGER FALSE)
-else()
-    # We're in sane linux world
-    set (SHARED_LIB_EXTENSION "so")
-endif()
-
+set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 ##
 # Record this top-level path
@@ -47,7 +33,11 @@ set (GAT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # Have CMake tell us what it's doing
 set (CMAKE_VERBOSE_MAKEFILE true)
 
-find_package (ZLIB)
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+
+find_package (ZLIB REQUIRED STATIC)
+MESSAGE( ${ZLIB_LIBRARIES} )
 
 # Recurse into transrate-tools source directory
 add_subdirectory ( src )
+
