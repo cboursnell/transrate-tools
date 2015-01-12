@@ -15,5 +15,10 @@ set(LIBRARIES ${GAT_SOURCE_DIR}/bamtools/lib/libbamtools.a ${ZLIB_LIBRARIES})
 add_executable(bam-read ${BAMREAD_SRCS} ${BAMREAD_HEADERS})
 add_executable(bam-split ${BAMSPLIT_SRCS} ${BAMSPLIT_HEADERS})
 
+set_target_properties(bam-read PROPERTIES LINK_SEARCH_START_STATIC 1)
+set_target_properties(bam-read PROPERTIES LINK_SEARCH_END_STATIC 1)
+set_target_properties(bam-split PROPERTIES LINK_SEARCH_START_STATIC 1)
+set_target_properties(bam-split PROPERTIES LINK_SEARCH_END_STATIC 1)
+
 target_link_libraries(bam-read ${LIBRARIES})
 target_link_libraries(bam-split ${LIBRARIES})
