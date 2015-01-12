@@ -47,7 +47,5 @@ set (GAT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # Have CMake tell us what it's doing
 set (CMAKE_VERBOSE_MAKEFILE true)
 
-find_package (ZLIB)
-
 # Recurse into transrate-tools source directory
-add_subdirectory ( src )
+add_subdirectory(src)
