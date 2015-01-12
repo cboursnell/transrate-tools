@@ -129,20 +129,6 @@ bam-read/fast:
 	cd /Users/rds45/code/transrate-tools && $(MAKE) -f src/CMakeFiles/bam-read.dir/build.make src/CMakeFiles/bam-read.dir/build
 .PHONY : bam-read/fast
 
-# Convenience name for target.
-src/CMakeFiles/bam-split.dir/rule:
-	cd /Users/rds45/code/transrate-tools && $(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/bam-split.dir/rule
-.PHONY : src/CMakeFiles/bam-split.dir/rule
-
-# Convenience name for target.
-bam-split: src/CMakeFiles/bam-split.dir/rule
-.PHONY : bam-split
-
-# fast build rule for target.
-bam-split/fast:
-	cd /Users/rds45/code/transrate-tools && $(MAKE) -f src/CMakeFiles/bam-split.dir/build.make src/CMakeFiles/bam-split.dir/build
-.PHONY : bam-split/fast
-
 bam-read.o: bam-read.cpp.o
 .PHONY : bam-read.o
 
@@ -166,30 +152,6 @@ bam-read.s: bam-read.cpp.s
 bam-read.cpp.s:
 	cd /Users/rds45/code/transrate-tools && $(MAKE) -f src/CMakeFiles/bam-read.dir/build.make src/CMakeFiles/bam-read.dir/bam-read.cpp.s
 .PHONY : bam-read.cpp.s
-
-bam-split.o: bam-split.cpp.o
-.PHONY : bam-split.o
-
-# target to build an object file
-bam-split.cpp.o:
-	cd /Users/rds45/code/transrate-tools && $(MAKE) -f src/CMakeFiles/bam-split.dir/build.make src/CMakeFiles/bam-split.dir/bam-split.cpp.o
-.PHONY : bam-split.cpp.o
-
-bam-split.i: bam-split.cpp.i
-.PHONY : bam-split.i
-
-# target to preprocess a source file
-bam-split.cpp.i:
-	cd /Users/rds45/code/transrate-tools && $(MAKE) -f src/CMakeFiles/bam-split.dir/build.make src/CMakeFiles/bam-split.dir/bam-split.cpp.i
-.PHONY : bam-split.cpp.i
-
-bam-split.s: bam-split.cpp.s
-.PHONY : bam-split.s
-
-# target to generate assembly for a file
-bam-split.cpp.s:
-	cd /Users/rds45/code/transrate-tools && $(MAKE) -f src/CMakeFiles/bam-split.dir/build.make src/CMakeFiles/bam-split.dir/bam-split.cpp.s
-.PHONY : bam-split.cpp.s
 
 pileup.o: pileup.cpp.o
 .PHONY : pileup.o
@@ -246,16 +208,12 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... bam-read"
-	@echo "... bam-split"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... bam-read.o"
 	@echo "... bam-read.i"
 	@echo "... bam-read.s"
-	@echo "... bam-split.o"
-	@echo "... bam-split.i"
-	@echo "... bam-split.s"
 	@echo "... pileup.o"
 	@echo "... pileup.i"
 	@echo "... pileup.s"
