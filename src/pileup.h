@@ -14,22 +14,38 @@ using namespace std;
 class TransratePileup {
 
   private:
+    // instance variables
     int p;
-    int ref_length;
     vector<int> coverage;
-    vector<long> mapq;
+
 
   public:
-    TransratePileup(int maxL);
+    // constructor
+    TransratePileup();
 
+    // instance variables i can't be bothered to write accessor methods for
+    int ref_length;
+    int bases_mapped;
+    uint32_t p_seq_true;
+    int bridges;
+    int length;
+    string name;
+    int fragments_mapped;
+    int both_mapped;
+    int properpair;
+    int good;
+    int bases_uncovered;
+    double p_unique;
+    double p_not_segmented;
+
+    // methods
     void clearCoverage(int rl);
+    void setName(std::string);
+    void setLength(int);
     int getCoverage(int i);
-    int getMapq(int i);
     vector<int> getCoverageArray();
-    vector<int> getBinnedCoverage();
-    int getBasesUncovered();
-    double getUniqueBases();
-    double p_not_segmented();
-    bool addAlignment(const BamAlignment& alignment);
+    void calculateUncoveredBases();
+    void setPNotSegmented();
+    void addAlignment(const BamAlignment& alignment);
 
 };
