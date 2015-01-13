@@ -26,10 +26,11 @@ class TransratePileup {
     // instance variables i can't be bothered to write accessor methods for
     int ref_length;
     int bases_mapped;
-    uint32_t p_seq_true;
+    double p_seq_true;
     int bridges;
     int length;
     string name;
+    int reads_mapped;
     int fragments_mapped;
     int both_mapped;
     int properpair;

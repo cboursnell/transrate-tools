@@ -30,26 +30,33 @@ int BamRead::load_bam(std::string file)
   realistic_distance = 450;
 
   // loop through the bam file
-
+  double scale = 0.65;
+  double seq_true = 0;
   while (reader.GetNextAlignment(alignment)) {
     // read must be mapped
     if (!alignment.IsMapped()) {
       continue;
     }
+    refid = alignment.RefID;
+    ++array[refid].reads_mapped;
 
-    array[alignment.RefID].addAlignment(alignment);
+    array[refid].addAlignment(alignment);
 
     // store edit distance for sequence accuracy calculation
     if (alignment.HasTag("NM")) {
       if (alignment.GetTag("NM", nm_tag)) {
-        array[alignment.RefID].p_seq_true += nm_tag;
+        len = alignment.Length;
+        scale = (len - 35)/(double)len;
+        seq_true = (len - nm_tag)/(double)len;
+        seq_true = (seq_true - scale) * (1 / (1 - scale));
+        array[refid].p_seq_true += seq_true;
       }
     }
 
     // count fragments where either or both mates mapped
     if (alignment.IsFirstMate() ||
       (alignment.IsSecondMate() && !alignment.IsMateMapped())) {
-      ++array[alignment.RefID].fragments_mapped;
+      ++array[refid].fragments_mapped;
     }
 
     // from now on ignore fragments unless both mates mapped
@@ -57,17 +64,17 @@ int BamRead::load_bam(std::string file)
       continue;
     }
 
-    ++array[alignment.RefID].both_mapped;
+    ++array[refid].both_mapped;
 
     // // count proper pairs, although we have our own definition because
     // // not all aligners use the same definition
     if (alignment.IsProperPair()) {
-      ++array[alignment.RefID].properpair;
+      ++array[refid].properpair;
     }
 
     // // mates must align to same contig, otherwise we record a bridge
-    if (alignment.RefID != alignment.MateRefID) {
-      ++array[alignment.RefID].bridges;
+    if (refid != alignment.MateRefID) {
+      ++array[refid].bridges;
       continue;
     }
 
@@ -88,13 +95,13 @@ int BamRead::load_bam(std::string file)
       // in FR orientation, first read must start
       // before second read
       if (alignment.Position < alignment.MatePosition) {
-        array[alignment.RefID].good++;
+        array[refid].good++;
       }
     } else if (is_reversed && !is_mate_reversed) {
       // in RF orientation, second read must start
       // before first read
       if (alignment.MatePosition < alignment.Position) {
-        array[alignment.RefID].good++;
+        array[refid].good++;
       }
     }
   } // end of bam file
@@ -124,9 +131,8 @@ int main (int argc, char* argv[]) {
 
     for (int i = 0; i < bam.seq_count; i++) {
       output << bam.array[i].name << ",";
-      if (bam.array[i].bases_mapped > 0) {
-        output << 1-((double)bam.array[i].p_seq_true/bam.array[i].bases_mapped) <<
-        ",";
+      if (bam.array[i].reads_mapped > 0) {
+        output << bam.array[i].p_seq_true/bam.array[i].reads_mapped << ",";
       } else {
         output << "1,";
       }
@@ -145,7 +151,7 @@ int main (int argc, char* argv[]) {
 
     return 0;
   } else {
-    cout << "bam-read version 1.0.0.beta2\n"
+    cout << "bam-read version 1.0.0.beta3\n"
          << "Usage:\n"
          << "bam-read <bam_file> <output_csv> <nullprior (optional)>\n\n"
          << "example:\n"

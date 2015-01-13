@@ -8,9 +8,10 @@ using namespace std;
 TransratePileup::TransratePileup() {
   ref_length = 100;
   bases_mapped = 0;
-  p_seq_true = 0;
+  p_seq_true = 0.0;
   bridges = 0;
   name = "unknown";
+  reads_mapped = 0;
   fragments_mapped = 0;
   both_mapped = 0;
   properpair = 0;
