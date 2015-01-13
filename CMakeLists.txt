@@ -33,6 +33,10 @@ set (GAT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # Have CMake tell us what it's doing
 set (CMAKE_VERBOSE_MAKEFILE true)
 
+IF("${CMAKE_SYSTEM}" MATCHES "Linux")
+  set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+ENDIF("${CMAKE_SYSTEM}" MATCHES "Linux")
+
 find_package (ZLIB REQUIRED STATIC)
 MESSAGE( ${ZLIB_LIBRARIES} )
 
