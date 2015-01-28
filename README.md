@@ -5,7 +5,7 @@ Command-line tools used by [transrate](http://github.com/blahah/transrate) for p
 
 ### building
 
-transrate-tools uses C++11 features, so you'll need at least g++ 4.7 installed. On OSX you can install the latest gcc with `brew install gcc49`. Note that on OSX you always need to tell `cmake` where to find gcc, using the option `-DCMAKE_CXX_COMPILER=$(which g++-4.9)`.
+transrate-tools uses C++11 features, so you'll need at least g++ 4.8 installed. On OSX you can install the latest gcc with `brew install gcc49`. Note that on OSX you always need to tell `cmake` where to find gcc, using the option `-DCMAKE_CXX_COMPILER=$(which g++-4.9)`.
 
 Make sure you clone with submodules:
 
