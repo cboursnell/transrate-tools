@@ -6,6 +6,7 @@
 #include "segmenter.h"
 
 extern double nullprior;
+extern int fragment_length;
 
 using namespace BamTools;
 
@@ -36,6 +37,8 @@ class TransratePileup {
     int properpair;
     int good;
     int bases_uncovered;
+    int right_overhang;
+    int left_overhang;
     double p_unique;
     double p_not_segmented;
 

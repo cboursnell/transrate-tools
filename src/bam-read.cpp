@@ -1,7 +1,70 @@
 #include "bam-read.h"
 
-int BamRead::load_bam(std::string file)
-{
+int BamRead::estimate_fragment_size(std::string file) {
+  if (!reader.Open(file)) {
+    cerr << "Could not open BAM file" << endl;
+    return 1;
+  }
+  int count = 0;
+  std::string name = "";
+  std::string prev = "";
+  int pos1 = -1;
+  int pos2 = -1;
+  int len1 = -1;
+  int len2 = -1;
+  int fragment = 0; // mean fragment length
+  int mean = 0;
+  double mn = -1;
+  double m = -1;
+  double s = 0;
+
+  // m_1 = x_1
+  // s_1 = 0
+
+  // M_k = M_{k-1} + (x_k - M_{k-1})/k
+  // S_k = S_{k-1} + (x_k - M_{k-1}) * (x_k - M_k).
+
+  while (reader.GetNextAlignment(alignment) && count < 10000) {
+    if (name != "") {
+      prev = name;
+      pos2 = pos1;
+      len2 = len1;
+    }
+    if (alignment.IsPrimaryAlignment()) { // does this do anything?
+      name = alignment.Name;
+      pos1 = alignment.Position;
+      len1 = alignment.Length;
+
+      if (prev == name) {
+        if (pos1 >= 0 && pos2 >= 0) {
+          if (pos1 > pos2) {
+            fragment = (pos1 - pos2 + len1);
+          } else {
+            fragment = (pos2 - pos1 + len2);
+          }
+          // cout << count << "," << fragment << endl;
+          if (count > 0) {
+            mn = m + (fragment - m)/count;
+            s = s + ((fragment - m) * (fragment - mn));
+            m = mn;
+          } else {
+            m = fragment;
+          }
+          mean += fragment;
+          ++count;
+        }
+      }
+    }
+  }
+  mean=mean/(double)count;
+  // cout << "count: " << count << " mean:" << mean << endl;
+  s = sqrt(s/(count-1));
+  // cout << "sd: " << s << endl;
+  realistic_distance = (int)(3 * s + mean);
+  return (int)mean;
+}
+
+int BamRead::load_bam(std::string file) {
   if (!reader.Open(file)) {
     cerr << "Could not open BAM file" << endl;
     return 1;
@@ -22,16 +85,15 @@ int BamRead::load_bam(std::string file)
     } else {
       len = 0;
     }
-    // array[i] = TransratePileup(it[i].Name, len);
     array[i].setName(it[i].Name);
     array[i].setLength(len);
   }
 
-  realistic_distance = 450;
-
   // loop through the bam file
   double scale = 0.65;
   double seq_true = 0;
+  int pos;
+  reader.Rewind();  // Returns the internal file pointer to the first alignment
   while (reader.GetNextAlignment(alignment)) {
     // read must be mapped
     if (!alignment.IsMapped()) {
@@ -59,51 +121,61 @@ int BamRead::load_bam(std::string file)
       ++array[refid].fragments_mapped;
     }
 
-    // from now on ignore fragments unless both mates mapped
-    if (!(alignment.IsFirstMate() && alignment.IsMateMapped())) {
-      continue;
-    }
-
-    ++array[refid].both_mapped;
-
-    // // count proper pairs, although we have our own definition because
-    // // not all aligners use the same definition
-    if (alignment.IsProperPair()) {
-      ++array[refid].properpair;
-    }
-
-    // // mates must align to same contig, otherwise we record a bridge
-    if (refid != alignment.MateRefID) {
-      ++array[refid].bridges;
-      continue;
-    }
-
-    ldist = max(alignment.Position-alignment.MatePosition,
-                alignment.MatePosition-alignment.Position);
-    if (ldist > realistic_distance) {
-      // mates are too far apart
-      continue;
-    }
-
-    // read orientation must match the generated library
-    // in this case we only test for FR/RF orientation,
-    // that is - we expect mates to be on opposite strands
-    bool is_reversed = alignment.IsReverseStrand();
-    bool is_mate_reversed = alignment.IsMateReverseStrand();
-
-    if (!is_reversed && is_mate_reversed) {
-      // in FR orientation, first read must start
-      // before second read
-      if (alignment.Position < alignment.MatePosition) {
-        array[refid].good++;
+    // are both reads in the fragment mapped
+    if (alignment.IsMateMapped()) { // we already know this read is mapped
+      pos = alignment.Position;
+      // mates must align to same contig, otherwise we record a bridge
+      if (refid != alignment.MateRefID) {
+        ++array[refid].bridges;
+        continue;
       }
-    } else if (is_reversed && !is_mate_reversed) {
-      // in RF orientation, second read must start
-      // before first read
-      if (alignment.MatePosition < alignment.Position) {
-        array[refid].good++;
+      if (alignment.IsSecondMate()) {
+        ++array[refid].both_mapped;
+        continue;   // only calculate 'good' for first read in fragment
+      }
+      if (alignment.MatePosition > pos) {
+        ldist = alignment.MatePosition - pos + alignment.Length;
+        if (ldist > realistic_distance) {
+          continue; // mates too far apart
+        }
+      } else {
+        ldist = pos - alignment.MatePosition + alignment.Length;
+        if (ldist > realistic_distance) {
+          continue; // mates too far apart
+        }
+      }
+      // read orientation must match the generated library
+      // in this case we only test for FR/RF orientation,
+      // that is - we expect mates to be on opposite strands
+      bool is_reversed = alignment.IsReverseStrand();
+      bool is_mate_reversed = alignment.IsMateReverseStrand();
+
+      if (!is_reversed && is_mate_reversed) {
+        // in FR orientation, first read must start
+        // before second read
+        if (pos < alignment.MatePosition) {
+          array[refid].good++;
+        }
+      } else if (is_reversed && !is_mate_reversed) {
+        // in RF orientation, second read must start
+        // before first read
+        if (alignment.MatePosition < pos) {
+          array[refid].good++;
+        }
+      }
+
+    } else {
+      // check to see if the read is at the end of the contig
+      if (pos + fragment_length -
+          alignment.Length > array[refid].length) {
+        array[refid].good++; // fragment aligns off the end of contig
+      } else if (pos + 2*alignment.Length -
+                 fragment_length < 0) {
+        array[refid].good++; // fragment aligns off the end of contig
       }
     }
+
+
   } // end of bam file
   for (int i = 0; i < seq_count; i++) {
     array[i].calculateUncoveredBases();
@@ -121,13 +193,14 @@ int main (int argc, char* argv[]) {
       nullprior = atof(argv[3]);
     }
     string infile = argv[1];
+    fragment_length = bam.estimate_fragment_size(infile);
     bam.load_bam(infile);
     // open file for writing
     std::ofstream output;
     output.open (argv[2]);
     output << "name,p_seq_true,bridges,length,fragments_mapped,"
-              "both_mapped,properpair,good,bases_uncovered,p_unique,"
-              "p_not_segmented" << endl;
+              "both_mapped,properpair,good,bases_uncovered,"
+              "p_not_segmented,left_overhang,right_overhang" << endl;
 
     for (int i = 0; i < bam.seq_count; i++) {
       output << bam.array[i].name << ",";
@@ -143,15 +216,16 @@ int main (int argc, char* argv[]) {
       output << bam.array[i].properpair << ",";
       output << bam.array[i].good << ",";
       output << bam.array[i].bases_uncovered << ",";
-      output << bam.array[i].p_unique << ",";
-      output << bam.array[i].p_not_segmented << endl;
+      output << bam.array[i].p_not_segmented << ",";
+      output << bam.array[i].left_overhang << ",";
+      output << bam.array[i].right_overhang << endl;
     }
 
     output.close();
 
     return 0;
   } else {
-    cout << "bam-read version 1.0.0.beta3\n"
+    cout << "bam-read version 1.0.0.beta4\n"
          << "Usage:\n"
          << "bam-read <bam_file> <output_csv> <nullprior (optional)>\n\n"
          << "example:\n"

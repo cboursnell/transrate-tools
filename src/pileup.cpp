@@ -19,6 +19,8 @@ TransratePileup::TransratePileup() {
   bases_uncovered = 0;
   p_unique = 0;
   p_not_segmented = 0;
+  right_overhang = 0;
+  left_overhang = 0;
   coverage.resize(ref_length);
 }
 
@@ -45,6 +47,8 @@ void TransratePileup::calculateUncoveredBases() {
       ++bases_uncovered;
     }
   }
+  bases_uncovered += right_overhang;
+  bases_uncovered += left_overhang;
 }
 
 void TransratePileup::setPNotSegmented() {
@@ -71,6 +75,12 @@ void TransratePileup::setPNotSegmented() {
 void TransratePileup::addAlignment(const BamAlignment& alignment) {
   int numCigarOps = alignment.CigarData.size();
   int pos = alignment.Position;
+  if (pos + fragment_length > ref_length) {
+    right_overhang = pos + fragment_length - ref_length;
+  }
+  if (pos + alignment.Length - fragment_length < 0) {
+    left_overhang = fragment_length - pos - alignment.Length;
+  }
   bases_mapped += alignment.Length;
   for (int i = 0; i < numCigarOps; ++i) {
     const CigarOp& op = alignment.CigarData.at(i);
