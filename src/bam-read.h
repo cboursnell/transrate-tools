@@ -15,6 +15,7 @@ double nullprior = 0.7;
 class BamRead
 {
 public:
+  int estimate_fragment_size(std::string file);
   int load_bam(std::string);
   int bar;
   int seq_count;
