@@ -1,7 +1,78 @@
 #include "bam-read.h"
 
-int BamRead::load_bam(std::string file)
-{
+int BamRead::estimate_fragment_size(std::string file) {
+  if (!reader.Open(file)) {
+    cerr << "Could not open BAM file" << endl;
+    return 1;
+  }
+  int count = 0;
+  std::string name = "";
+  std::string prev = "";
+  int pos1 = -1;
+  int pos2 = -1;
+  int len1 = -1;
+  int len2 = -1;
+  int fragment = 0; // mean fragment length
+  int mean = 0;
+  double mn = -1;
+  double m = -1;
+  double s = 0;
+  bool is_reversed;
+  bool is_mate_reversed;
+
+  while (reader.GetNextAlignment(alignment) && count < 10000) {
+    if (name != "") {
+      prev = name;
+      pos2 = pos1;
+      len2 = len1;
+    }
+    if (alignment.IsPrimaryAlignment()) { // does this do anything?
+      name = alignment.Name;
+      pos1 = alignment.Position;
+      len1 = alignment.Length;
+
+      if (prev == name) {
+        if (pos1 >= 0 && pos2 >= 0) {
+          is_reversed = alignment.IsReverseStrand();
+          is_mate_reversed = alignment.IsMateReverseStrand();
+
+          if (!is_reversed && is_mate_reversed) {
+            if (pos1 > alignment.MatePosition) {
+              continue;
+            }
+          } else if (is_reversed && !is_mate_reversed) {
+            if (alignment.MatePosition > pos1) {
+              continue;
+            }
+          }
+
+          if (pos1 > pos2) {
+            fragment = (pos1 - pos2 + len1);
+          } else {
+            fragment = (pos2 - pos1 + len2);
+          }
+          if (count > 0) {
+            mn = m + (fragment - m)/count;
+            s = s + ((fragment - m) * (fragment - mn));
+            m = mn;
+          } else {
+            m = fragment;
+          }
+          mean += fragment;
+          ++count;
+        }
+      }
+    }
+  }
+  mean=mean/(double)count;
+  // cout << "count: " << count << " mean:" << mean << endl;
+  s = sqrt(s/(count-1));
+  // cout << "sd: " << s << endl;
+  realistic_distance = (int)(3 * s + mean);
+  return 0;
+}
+
+int BamRead::load_bam(std::string file) {
   if (!reader.Open(file)) {
     cerr << "Could not open BAM file" << endl;
     return 1;
@@ -121,12 +192,13 @@ int main (int argc, char* argv[]) {
       nullprior = atof(argv[3]);
     }
     string infile = argv[1];
+    bam.estimate_fragment_size(infile);
     bam.load_bam(infile);
     // open file for writing
     std::ofstream output;
     output.open (argv[2]);
     output << "name,p_seq_true,bridges,length,fragments_mapped,"
-              "both_mapped,properpair,good,bases_uncovered,p_unique,"
+              "both_mapped,properpair,good,bases_uncovered,"
               "p_not_segmented" << endl;
 
     for (int i = 0; i < bam.seq_count; i++) {
@@ -143,7 +215,6 @@ int main (int argc, char* argv[]) {
       output << bam.array[i].properpair << ",";
       output << bam.array[i].good << ",";
       output << bam.array[i].bases_uncovered << ",";
-      output << bam.array[i].p_unique << ",";
       output << bam.array[i].p_not_segmented << endl;
     }
 
@@ -151,7 +222,7 @@ int main (int argc, char* argv[]) {
 
     return 0;
   } else {
-    cout << "bam-read version 1.0.0.beta3\n"
+    cout << "bam-read version 1.0.0.beta4\n"
          << "Usage:\n"
          << "bam-read <bam_file> <output_csv> <nullprior (optional)>\n\n"
          << "example:\n"
