@@ -37,9 +37,7 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 endif("${CMAKE_SYSTEM}" MATCHES "Linux")
 
-if(APPLE)
-  find_package (ZLIB REQUIRED)
-elseif()
+if(!APPLE)
   find_package (ZLIB REQUIRED STATIC)
 endif()
 
