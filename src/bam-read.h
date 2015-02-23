@@ -5,6 +5,7 @@
 #include <vector>
 #include "api/BamReader.h"
 #include "pileup.h"
+#include "thread.h"
 
 using namespace BamTools;
 
@@ -16,7 +17,8 @@ class BamRead
 {
 public:
   int estimate_fragment_size(std::string file);
-  int load_bam(std::string);
+  int load_bam(std::string, int);
+  int thread_id;
   int bar;
   int seq_count;
   uint32_t nm_tag;
@@ -25,5 +27,6 @@ public:
   int refid;
   BamReader reader;
   BamAlignment alignment;
-  std::vector<TransratePileup> array;
+  std::vector<TransratePileup> array;   // data about each contig
+  std::vector<TransrateThread> threads;
 };
