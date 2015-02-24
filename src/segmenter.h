@@ -3,6 +3,9 @@
 #include <math.h> /* modf, tgamma */
 #include <float.h> /* FLT_MIN */
 
+#ifndef __segmenter_h__
+#define __segmenter_h__
+
 using namespace std;
 
 class Segmenter {
@@ -32,3 +35,5 @@ public:
   double prob_k_given_R(int k);
 
 };
+
+#endif

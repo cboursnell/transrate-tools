@@ -98,8 +98,6 @@ int BamRead::load_bam(std::string file, int thread_count) {
     array[i].setLength(len);
   }
 
-  realistic_distance = 450;
-
   // loop through the bam file
   //for (int t = 0; t < threads; t++) {
   //  threads[t].start();

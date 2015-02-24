@@ -5,6 +5,9 @@
 #include "api/BamAlignment.h"
 #include "segmenter.h"
 
+#ifndef __pileup_h__
+#define __pileup_h__
+
 extern double nullprior;
 
 using namespace BamTools;
@@ -50,3 +53,5 @@ class TransratePileup {
     void addAlignment(const BamAlignment& alignment);
 
 };
+
+#endif

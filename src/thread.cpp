@@ -13,9 +13,10 @@ int TransrateThread::add(const BamAlignment& alignment) {
 
 int TransrateThread::process() {
   // if queue is not empty
-  if (!list.empty()) {
+  if (!queue.empty()) {
   // remove item from front of the queue
-    alignment = queue.pop_front();
+    BamAlignment alignment = queue.front(); // get the first item
+    queue.pop_front(); // delete the first item
     refid = alignment.RefID;
 
     ++array[refid].reads_mapped;
@@ -41,7 +42,7 @@ int TransrateThread::process() {
 
     // from now on ignore fragments unless both mates mapped
     if (!(alignment.IsFirstMate() && alignment.IsMateMapped())) {
-      continue;
+      return 0;
     }
 
     ++array[refid].both_mapped;
@@ -55,14 +56,14 @@ int TransrateThread::process() {
     // // mates must align to same contig, otherwise we record a bridge
     if (refid != alignment.MateRefID) {
       ++array[refid].bridges;
-      continue;
+      return 0;
     }
 
-    ldist = max(alignment.Position-alignment.MatePosition,
+    ldist = std::max(alignment.Position-alignment.MatePosition,
                 alignment.MatePosition-alignment.Position);
     if (ldist > realistic_distance) {
       // mates are too far apart
-      continue;
+      return 0;
     }
 
     // read orientation must match the generated library

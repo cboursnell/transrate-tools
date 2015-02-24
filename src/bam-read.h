@@ -21,10 +21,7 @@ public:
   int thread_id;
   int bar;
   int seq_count;
-  uint32_t nm_tag;
-  int ldist;
   int realistic_distance;
-  int refid;
   BamReader reader;
   BamAlignment alignment;
   std::vector<TransratePileup> array;   // data about each contig

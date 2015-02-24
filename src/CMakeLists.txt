@@ -1,7 +1,7 @@
 find_package(ZLIB REQUIRED)
 
-set(BAMREAD_SRCS bam-read.cpp pileup.cpp segmenter.cpp)
-set(BAMREAD_HEADERS pileup.h segmenter.h)
+set(BAMREAD_SRCS bam-read.cpp pileup.cpp segmenter.cpp thread.cpp)
+set(BAMREAD_HEADERS bam-read.h pileup.h segmenter.h thread.h)
 
 
 include_directories(${GAT_SOURCE_DIR}/bamtools/include)

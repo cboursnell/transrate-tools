@@ -1,12 +1,12 @@
 #include <list>
+#include "pileup.h"
 #include "api/BamAlignment.h"
 
 using namespace BamTools;
 
-class TransrateThread {
+extern int realistic_distance;
 
-  private:
-    list<BamAlignment> queue;
+class TransrateThread {
 
   public:
     TransrateThread();
@@ -15,6 +15,14 @@ class TransrateThread {
     double seq_true;
     double scale;
     BamAlignment alignment;
+    std::list<BamAlignment> queue;
+    int refid;
+    int len;
+    int ldist;
+    int realistic_distance;
+    uint32_t nm_tag;
+
+    std::vector<TransratePileup> array;
 
     //methods
     int add(const BamAlignment& a);
