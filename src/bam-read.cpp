@@ -98,8 +98,6 @@ int BamRead::load_bam(std::string file) {
     array[i].setLength(len);
   }
 
-  realistic_distance = 450;
-
   // loop through the bam file
   double scale = 0.65;
   double seq_true = 0;
