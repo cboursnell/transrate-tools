@@ -52,11 +52,7 @@ $ cmake -DCMAKE_CXX_COMPILER=$(which g++-4.9) .
 $ make
 ```
 
-The executables are called `bam-read` and `bam-split` and will be in the `src` directory.
-
-### bam-split
-
-Parse bam files to separate records that will be filtered by eXpress so that they can be merged back in to the sampled assignments for multi-mapping reads.
+The executable is called `bam-read` and will be in the `src` directory.
 
 ### bam-read
 
