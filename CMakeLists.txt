@@ -38,7 +38,7 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
 endif("${CMAKE_SYSTEM}" MATCHES "Linux")
 
 if(APPLE)
-  find_package (ZLIB)
+  find_package (ZLIB REQUIRED)
 else()
   find_package (ZLIB REQUIRED STATIC)
 endif()
