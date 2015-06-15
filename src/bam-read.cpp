@@ -220,7 +220,7 @@ int main (int argc, char* argv[]) {
 
     return 0;
   } else {
-    cout << "bam-read version 1.0.0.beta4\n"
+    cout << "bam-read version 1.0.0\n"
          << "Usage:\n"
          << "bam-read <bam_file> <output_csv> <nullprior (optional)>\n\n"
          << "example:\n"
