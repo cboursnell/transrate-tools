@@ -1,5 +1,3 @@
-find_package(ZLIB REQUIRED)
-
 set(BAMREAD_SRCS bam-read.cpp pileup.cpp segmenter.cpp)
 set(BAMREAD_HEADERS pileup.h segmenter.h)
 

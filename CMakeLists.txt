@@ -33,12 +33,15 @@ set (GAT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # Have CMake tell us what it's doing
 set (CMAKE_VERBOSE_MAKEFILE true)
 
-IF("${CMAKE_SYSTEM}" MATCHES "Linux")
+if("${CMAKE_SYSTEM}" MATCHES "Linux")
   set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-ENDIF("${CMAKE_SYSTEM}" MATCHES "Linux")
+endif("${CMAKE_SYSTEM}" MATCHES "Linux")
 
-find_package (ZLIB REQUIRED STATIC)
-MESSAGE( ${ZLIB_LIBRARIES} )
+if(APPLE)
+  find_package (ZLIB REQUIRED)
+else()
+  find_package (ZLIB REQUIRED STATIC)
+endif()
 
 # Recurse into transrate-tools source directory
 add_subdirectory ( src )
